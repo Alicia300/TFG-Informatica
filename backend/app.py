@@ -97,7 +97,7 @@ def analizar():
 
     # Clasificación de SMS y correos mediante inteligencia artificial.
     else:
-        resultado_ia = clasificar_mensaje(contenido)
+        resultado_ia = clasificar_mensaje(contenido, tipo)
 
         clasificacion = resultado_ia["clasificacion"]
         confianza = resultado_ia["confianza_sospechoso"]

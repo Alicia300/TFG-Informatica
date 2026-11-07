@@ -1,7 +1,8 @@
-
 #Experimentos con un dataset público de correos en español (SpaPhish).
 
+
 import csv
+import os
 import sys
 
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -12,7 +13,9 @@ from sklearn.pipeline import Pipeline
 
 from datosEntrenamiento import mensajes as mensajes_propios
 
-RUTA_CSV = "datos/spaphish.csv"
+RUTA_CSV = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "datos", "spaphish.csv"
+)
 SEPARADOR = ","            # El README dice ";", pero el CSV real usa comas.
 COLUMNA_ASUNTO = "subject"    # Pon None si el CSV no tiene asunto.
 COLUMNA_CUERPO = "body"
@@ -59,6 +62,7 @@ def cargar_dataset(ruta):
 
 
 def crear_modelo():
+    """Mismo modelo que usa la aplicación."""
 
     return Pipeline([
         ("tfidf", TfidfVectorizer(

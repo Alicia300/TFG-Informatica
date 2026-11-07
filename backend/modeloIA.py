@@ -1,44 +1,44 @@
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression
-from sklearn.pipeline import Pipeline
+import os
 
-from datosEntrenamiento import mensajes
+import joblib
 
 
-# Separar los textos de sus etiquetas.
-textos = [texto for texto, etiqueta in mensajes]
-etiquetas = [etiqueta for texto, etiqueta in mensajes]
+CARPETA_MODELOS = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "modelos"
+)
+
+RUTAS_MODELOS = {
+    "sms": os.path.join(CARPETA_MODELOS, "modelo_sms.joblib"),
+    "email": os.path.join(CARPETA_MODELOS, "modelo_email.joblib"),
+}
 
 
-# Crear el modelo: TF-IDF + Regresión Logística.
-modelo = Pipeline([
-    (
-        "tfidf",
-        TfidfVectorizer(
-            lowercase=True,
-            strip_accents="unicode",
-            ngram_range=(1, 2)
-        )
-    ),
-    (
-        "clasificador",
-        LogisticRegression(
-            C=10,  # Menos regularización: probabilidades más definidas.
-            max_iter=1000,
-            random_state=42
-        )
-    )
-])
+def _cargar_modelos():
+    """Carga los modelos entrenados al arrancar la aplicación."""
+
+    modelos = {}
+
+    for tipo, ruta in RUTAS_MODELOS.items():
+        if not os.path.exists(ruta):
+            raise FileNotFoundError(
+                f"No se encuentra el modelo '{tipo}' ({ruta}). "
+                "Ejecuta primero: python entrenar.py"
+            )
+        modelos[tipo] = joblib.load(ruta)
+
+    return modelos
 
 
-# Entrenar el modelo con los ejemplos disponibles.
-modelo.fit(textos, etiquetas)
+MODELOS = _cargar_modelos()
 
 
-def clasificar_mensaje(texto):
-    """Clasifica un mensaje como legítimo o sospechoso."""
+def clasificar_mensaje(texto, tipo="sms"):
+    """Clasifica un SMS o un correo como legítimo o sospechoso."""
 
-    prediccion = int(modelo.predict([texto])[0])
+    if tipo not in MODELOS:
+        raise ValueError(f"Tipo de mensaje no válido: {tipo}")
+
+    modelo = MODELOS[tipo]
     probabilidades = modelo.predict_proba([texto])[0]
 
     indice_sospechoso = list(
@@ -49,67 +49,46 @@ def clasificar_mensaje(texto):
 
     return {
         "clasificacion": (
-            "sospechoso" if prediccion == 1 else "legitimo"
+            "sospechoso" if confianza >= 0.5 else "legitimo"
         ),
         "confianza_sospechoso": round(confianza, 4)
     }
 
 
 if __name__ == "__main__":
-    # Mensajes nuevos para realizar pruebas manuales.
+    # Mensajes nuevos para realizar pruebas manuales: (tipo, texto, esperado).
     ejemplos = [
+        ("sms", "Tu envío llegará mañana entre las diez y las doce.", "legitimo"),
+        ("sms", "Comparte el código recibido por SMS para desbloquear tu cuenta.", "sospechoso"),
+        ("sms", "Hola, ¿te viene bien quedar el viernes por la tarde?", "legitimo"),
+        ("sms", "Tu cuenta bancaria será suspendida si no confirmas tus datos ahora.", "sospechoso"),
+        ("sms", "Introduce el número de tu tarjeta para recibir un reembolso urgente.", "sospechoso"),
+        ("sms", "La reunión se ha cambiado a las nueve de la mañana.", "legitimo"),
         (
-            "Tu envío llegará mañana entre las diez y las doce.",
+            "email",
+            "Asunto: Reunión del jueves. Hola a todos, os confirmo que la reunión "
+            "del proyecto será el jueves a las 10:00 en la sala 3. Adjunto el orden "
+            "del día. Un saludo, Marta.",
             "legitimo"
         ),
         (
-            "Comparte el código recibido por SMS para desbloquear tu cuenta.",
+            "email",
+            "Asunto: Aviso de seguridad. Estimado cliente, hemos detectado un acceso "
+            "no autorizado a su cuenta bancaria. Para evitar el bloqueo definitivo, "
+            "verifique su identidad en el siguiente enlace en las próximas 24 horas: "
+            "http://banco-seguro-verificacion.example/login",
             "sospechoso"
         ),
-        (
-            "Hola, ¿te viene bien quedar el viernes por la tarde?",
-            "legitimo"
-        ),
-        (
-            "Tu cuenta bancaria será suspendida si no confirmas tus datos ahora.",
-            "sospechoso"
-        ),
-        (
-            "Puedes consultar el estado de tu pedido en la aplicación oficial.",
-            "legitimo"
-        ),
-        (
-            "Introduce el número de tu tarjeta para recibir un reembolso urgente.",
-            "sospechoso"
-        ),
-        (
-            "La reunión se ha cambiado a las nueve de la mañana.",
-            "legitimo"
-        ),
-        (
-            "Has ganado un premio, paga los gastos para poder recibirlo.",
-            "sospechoso"
-        )
     ]
 
-    print("PRUEBAS MANUALES DEL MODELO DE IA")
+    print("PRUEBAS MANUALES DE LOS MODELOS DE IA")
     print("=" * 55)
 
-    for texto, etiqueta_esperada in ejemplos:
-        resultado = clasificar_mensaje(texto)
+    for tipo, texto, esperado in ejemplos:
+        resultado = clasificar_mensaje(texto, tipo)
 
-        clasificacion = resultado["clasificacion"]
-        confianza = resultado["confianza_sospechoso"]
-
-        print(f"\nMensaje: {texto}")
-        print(f"Clasificación esperada: {etiqueta_esperada}")
-        print(f"Clasificación obtenida: {clasificacion}")
-        print(
-            "Puntuación estimada de sospecha: "
-            f"{confianza:.1%}"
-        )
-
-        if clasificacion == etiqueta_esperada:
-            print("Resultado de la prueba: CORRECTO")
-        else:
-            print("Resultado de la prueba: INCORRECTO")
+        print(f"\n[{tipo.upper()}] {texto[:90]}")
+        print(f"Esperado: {esperado} | Obtenido: {resultado['clasificacion']} "
+              f"({resultado['confianza_sospechoso']:.1%})")
+        print("Resultado de la prueba:",
+              "CORRECTO" if resultado["clasificacion"] == esperado else "INCORRECTO")
