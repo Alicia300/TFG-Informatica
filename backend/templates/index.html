@@ -1,0 +1,82 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detector de Fraudes Digitales</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='script.js') }}" defer></script>
+</head>
+<body>
+    <header class="cabecera">
+        <div class="contenedor">
+            <h1>FraudShield</h1>
+            <p>Detección y prevención de fraudes digitales</p>
+        </div>
+    </header>
+
+    <main class="contenedor">
+        <section class="presentacion">
+            <h2>Analiza antes de confiar</h2>
+            <p>
+                Comprueba si un mensaje, un correo electrónico
+                o un enlace presenta indicios de fraude digital.
+            </p>
+        </section>
+
+        <section class="panel">
+            <h2>¿Qué quieres analizar?</h2>
+
+            <label for="tipo-analisis">Tipo de contenido</label>
+            <select id="tipo-analisis">
+                <option value="sms">Mensaje SMS</option>
+                <option value="email">Correo electrónico</option>
+                <option value="url">Enlace (URL)</option>
+            </select>
+
+            <label for="contenido">Contenido que deseas analizar</label>
+            <textarea
+                id="contenido"
+                rows="7"
+                placeholder="Pega aquí el mensaje, correo o enlace..."
+            ></textarea>
+
+            <button id="boton-analizar" type="button">
+                Analizar contenido
+            </button>
+
+            <div id="resultado" class="resultado" hidden>
+                <h3 id="nivel-riesgo"></h3>
+                <p id="resumen-riesgo"></p>
+
+                <div id="seccion-indicios">
+                    <h4>Indicios detectados</h4>
+                    <ul id="lista-indicios"></ul>
+                </div>
+                
+                <div id="seccion-recomendaciones" hidden>
+                    <h3>Recomendaciones preventivas</h3>
+                    <ul id="lista-recomendaciones"></ul>
+                </div>
+
+                <p class="nota-resultado">
+                    Esta estimación no garantiza que el contenido sea seguro.
+                </p>
+            </div>
+
+            <p id="mensaje" class="mensaje" role="status"></p>
+        </section>
+
+        <p class="aviso">
+            El análisis proporcionará una estimación del riesgo.
+            No constituye una garantía absoluta de que un contenido
+            sea legítimo o fraudulento.
+        </p>
+    </main>
+
+    <footer>
+        <p>TFG · Detección y prevención de fraudes digitales</p>
+    </footer>
+</body>
+</html>
