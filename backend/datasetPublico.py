@@ -1,6 +1,5 @@
 #Experimentos con un dataset público de correos en español (SpaPhish).
 
-
 import csv
 import os
 import sys
@@ -61,14 +60,14 @@ def cargar_dataset(ruta):
     return list(dict.fromkeys(datos))
 
 
-def crear_modelo():
-    """Mismo modelo que usa la aplicación."""
+def crear_modelo(ngramas=(1, 2)):
+    """Modelo TF-IDF + regresión logística. ngramas=(1, 1) usa solo palabras sueltas."""
 
     return Pipeline([
         ("tfidf", TfidfVectorizer(
             lowercase=True,
             strip_accents="unicode",
-            ngram_range=(1, 2)
+            ngram_range=ngramas
         )),
         ("clasificador", LogisticRegression(
             C=10,

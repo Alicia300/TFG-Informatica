@@ -15,6 +15,13 @@ from datasetPublico import RUTA_CSV, cargar_dataset, crear_modelo
 from datosEntrenamiento import mensajes as mensajes_sms
 
 
+# N-gramas de cada modelo, según la comparación de compararModelos.py:
+# (1, 1) = palabras sueltas; (1, 2) = palabras sueltas y pares de palabras.
+NGRAMAS = {
+    "sms": (1, 2),
+    "email": (1, 1),
+}
+
 CARPETA_MODELOS = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "modelos"
 )
@@ -29,7 +36,7 @@ def entrenar_y_guardar(nombre, datos):
     # Evaluación rápida para dejar constancia del rendimiento.
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
     res = cross_validate(
-        crear_modelo(), textos, etiquetas, cv=cv,
+        crear_modelo(NGRAMAS[nombre]), textos, etiquetas, cv=cv,
         scoring=["accuracy", "precision", "recall", "f1"]
     )
 
@@ -38,7 +45,7 @@ def entrenar_y_guardar(nombre, datos):
         print(f"  {metrica:<10} {res[f'test_{metrica}'].mean():.2%}")
 
     # Entrenamiento final con todos los datos y guardado.
-    modelo = crear_modelo()
+    modelo = crear_modelo(NGRAMAS[nombre])
     modelo.fit(textos, etiquetas)
 
     os.makedirs(CARPETA_MODELOS, exist_ok=True)
