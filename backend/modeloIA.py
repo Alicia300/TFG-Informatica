@@ -1,7 +1,6 @@
 import os
-
 import joblib
-
+from explicacion import palabras_influyentes
 
 CARPETA_MODELOS = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "modelos"
@@ -53,6 +52,12 @@ def clasificar_mensaje(texto, tipo="sms"):
         ),
         "confianza_sospechoso": round(confianza, 4)
     }
+
+
+def palabras_clave(texto, tipo="sms", maximo=5):
+    """Palabras del texto que más han elevado el riesgo según el modelo."""
+
+    return palabras_influyentes(MODELOS[tipo], texto, maximo)
 
 
 if __name__ == "__main__":

@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, jsonify
 
 from analizador import analizar_contenido
-from modeloIA import clasificar_mensaje
+from explicacion import analizar_enlaces
+from modeloIA import clasificar_mensaje, palabras_clave
 
 app = Flask(__name__)
 
@@ -121,11 +122,42 @@ def analizar():
             nivel_riesgo = "bajo"
             indicios = []
 
+        # Enlaces escritos dentro del mensaje. Se analizan con las reglas
+        # de URL. Normalmente solo explican el resultado, pero un enlace de
+        # riesgo alto (por ejemplo, con una dirección IP) es algo que el
+        # modelo de texto no puede ver, así que sube el nivel a "medio".
+        enlaces = analizar_enlaces(contenido)
+
+        if any(e["nivel_riesgo"] == "alto" for e in enlaces):
+            if nivel_riesgo == "bajo":
+                nivel_riesgo = "medio"
+
+            indicios.append(
+                "El mensaje contiene un enlace con señales de riesgo alto."
+            )
+
+        # Explicación del resultado: solo si hay algo que explicar.
+        palabras = []
+
+        if nivel_riesgo != "bajo":
+            palabras = palabras_clave(contenido, tipo)
+
+            # Señales concretas de las reglas (urgencia, petición de
+            # datos, premios). El aviso genérico de "enlace" se omite
+            # porque ya se muestra en la sección de enlaces.
+            reglas = analizar_contenido(contenido, tipo)
+
+            for indicio in reglas["indicios"]:
+                if "enlace" not in indicio.lower():
+                    indicios.append(indicio)
+
         resultado = {
             "nivel_riesgo": nivel_riesgo,
             "puntuacion": round(confianza * 100),
             "indicios": indicios,
             "numero_indicios": len(indicios),
+            "palabras_influyentes": palabras,
+            "enlaces": enlaces,
             "clasificacion_ia": clasificacion,
             "confianza_sospechoso": confianza
         }

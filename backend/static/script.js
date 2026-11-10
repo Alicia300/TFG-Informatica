@@ -14,13 +14,22 @@ const listaRecomendaciones =
 const seccionRecomendaciones =
     document.getElementById("seccion-recomendaciones");
 
+const listaPalabras = document.getElementById("lista-palabras");
+const seccionPalabras = document.getElementById("seccion-palabras");
+const listaEnlaces = document.getElementById("lista-enlaces");
+const seccionEnlaces = document.getElementById("seccion-enlaces");
+
 botonAnalizar.addEventListener("click", async function () {
     const tipo = tipoAnalisis.value;
     const texto = contenido.value.trim();
 
     resultado.hidden = true;
     seccionRecomendaciones.hidden = true;
+    seccionPalabras.hidden = true;
+    seccionEnlaces.hidden = true;
     listaRecomendaciones.replaceChildren();
+    listaPalabras.replaceChildren();
+    listaEnlaces.replaceChildren();
     mensaje.textContent = "";
 
     // Limpiar las clases de los mensajes anteriores.
@@ -155,6 +164,54 @@ botonAnalizar.addEventListener("click", async function () {
             seccionIndicios.hidden = false;
         } else {
             seccionIndicios.hidden = true;
+        }
+
+        // Mostrar las palabras que más han influido en el resultado.
+        if (
+            Array.isArray(datos.palabras_influyentes) &&
+            datos.palabras_influyentes.length > 0
+        ) {
+            datos.palabras_influyentes.forEach(function (palabra) {
+                const elemento = document.createElement("li");
+                elemento.textContent = palabra;
+                listaPalabras.appendChild(elemento);
+            });
+
+            seccionPalabras.hidden = false;
+        }
+
+        // Mostrar los enlaces encontrados dentro del mensaje.
+        // Se muestran como texto (nunca como enlace pulsable).
+        if (Array.isArray(datos.enlaces) && datos.enlaces.length > 0) {
+            datos.enlaces.forEach(function (enlace) {
+                const elemento = document.createElement("li");
+
+                const direccion = document.createElement("span");
+                direccion.className = "enlace-url";
+                direccion.textContent = enlace.url;
+                elemento.appendChild(direccion);
+
+                const nivelEnlace =
+                    nombresRiesgo[enlace.nivel_riesgo] || "No determinado";
+
+                elemento.appendChild(
+                    document.createTextNode(" — Riesgo: " + nivelEnlace)
+                );
+
+                if (
+                    Array.isArray(enlace.indicios) &&
+                    enlace.indicios.length > 0
+                ) {
+                    const detalle = document.createElement("div");
+                    detalle.className = "enlace-detalle";
+                    detalle.textContent = enlace.indicios.join(" ");
+                    elemento.appendChild(detalle);
+                }
+
+                listaEnlaces.appendChild(elemento);
+            });
+
+            seccionEnlaces.hidden = false;
         }
 
         // Mostrar las recomendaciones preventivas.

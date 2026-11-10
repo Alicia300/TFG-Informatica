@@ -20,16 +20,11 @@ from sklearn.model_selection import (
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
-
 from datasetPublico import RUTA_CSV, cargar_dataset
 from datosEntrenamiento import mensajes as mensajes_sms
 
-
 METRICAS = ["accuracy", "precision", "recall", "f1"]
-
-# Mismos folds para todos los algoritmos: la comparación es justa.
 VALIDACION = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-
 CARPETA = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -40,8 +35,6 @@ def crear_tfidf():
         ngram_range=(1, 2)
     )
 
-
-# Algoritmos a comparar (todos reciben el mismo texto vectorizado).
 ALGORITMOS = {
     "Regresión logística (C=10)": LogisticRegression(
         C=10, max_iter=1000, random_state=42
@@ -144,7 +137,6 @@ if __name__ == "__main__":
     for nombre, datos in conjuntos.items():
         ajustar_regresion_logistica(nombre, datos)
 
-    # Guardar la tabla para la memoria (se abre bien con Excel).
     ruta_csv = os.path.join(CARPETA, "resultados_comparacion.csv")
 
     with open(ruta_csv, "w", encoding="utf-8-sig", newline="") as archivo:
