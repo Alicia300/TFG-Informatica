@@ -21,7 +21,7 @@ def _cargar_modelos():
         if not os.path.exists(ruta):
             raise FileNotFoundError(
                 f"No se encuentra el modelo '{tipo}' ({ruta}). "
-                "Ejecuta primero: python entrenar.py"
+                "Es necesario ejecutar antes: python entrenar.py"
             )
         modelos[tipo] = joblib.load(ruta)
 

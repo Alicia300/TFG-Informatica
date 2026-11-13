@@ -16,6 +16,7 @@ from sklearn.model_selection import StratifiedKFold, cross_val_predict
 from analizador import analizar_contenido
 from datasetPublico import RUTA_CSV, cargar_dataset, crear_modelo
 from datosEntrenamiento import mensajes as mensajes_sms
+from entrenar import CONFIGURACION
 from explicacion import analizar_enlaces, nivel_mas_alto
 
 
@@ -42,19 +43,19 @@ def metricas(alerta, reales):
 
 
 CONJUNTOS = {
-    "SMS": ("sms", (1, 2), list(dict.fromkeys(mensajes_sms))),
-    "CORREO": ("email", (1, 1), cargar_dataset(RUTA_CSV)),
+    "SMS": ("sms", list(dict.fromkeys(mensajes_sms))),
+    "CORREO": ("email", cargar_dataset(RUTA_CSV)),
 }
 
 validacion = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
-for nombre, (tipo, ngramas, datos) in CONJUNTOS.items():
+for nombre, (tipo, datos) in CONJUNTOS.items():
     textos = [t for t, _ in datos]
     reales = np.array([e for _, e in datos])
 
     # Probabilidad de fraude de cada mensaje cuando NO se usó para entrenar.
     probabilidades = cross_val_predict(
-        crear_modelo(ngramas), textos, reales,
+        crear_modelo(**CONFIGURACION[tipo]), textos, reales,
         cv=validacion, method="predict_proba"
     )[:, 1]
 

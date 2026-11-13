@@ -1,4 +1,4 @@
-#Experimentos con un dataset público de correos en español (SpaPhish).
+# Experimentos con el conjunto público de correos en español SpaPhish.
 
 import csv
 import os
@@ -16,7 +16,7 @@ RUTA_CSV = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "datos", "spaphish.csv"
 )
 SEPARADOR = ","            # El README dice ";", pero el CSV real usa comas.
-COLUMNA_ASUNTO = "subject"    # Pon None si el CSV no tiene asunto.
+COLUMNA_ASUNTO = "subject"    # None si el CSV no tiene columna de asunto.
 COLUMNA_CUERPO = "body"
 COLUMNA_ETIQUETA = "Label"
 VALOR_FRAUDE = "1"            # Valor de la etiqueta que indica phishing.
@@ -40,7 +40,7 @@ def cargar_dataset(ruta):
         if faltan:
             print(f"No se encuentran las columnas: {faltan}")
             print(f"Columnas disponibles en el CSV: {columnas}")
-            print("Corrige las constantes de CONFIGURACIÓN y vuelve a ejecutar.")
+            print("Es necesario ajustar las constantes de configuración del script.")
             sys.exit(1)
 
         datos = []
@@ -60,8 +60,12 @@ def cargar_dataset(ruta):
     return list(dict.fromkeys(datos))
 
 
-def crear_modelo(ngramas=(1, 2)):
-    """Modelo TF-IDF + regresión logística. ngramas=(1, 1) usa solo palabras sueltas."""
+def crear_modelo(ngramas=(1, 2), C=10):
+    """Modelo TF-IDF + regresión logística.
+
+    ngramas=(1, 1) usa solo palabras sueltas; (1, 2) añade pares de palabras.
+    C controla la regularización (valores altos = menos regularización).
+    """
 
     return Pipeline([
         ("tfidf", TfidfVectorizer(
@@ -70,7 +74,7 @@ def crear_modelo(ngramas=(1, 2)):
             ngram_range=ngramas
         )),
         ("clasificador", LogisticRegression(
-            C=10,
+            C=C,
             max_iter=1000,
             random_state=42
         ))
@@ -138,9 +142,9 @@ if __name__ == "__main__":
     publico = cargar_dataset(RUTA_CSV)
 
     # Experimento A: el dataset público por sí solo.
-    validacion_cruzada(publico, "A) VALIDACIÓN CRUZADA: dataset público")
+    validacion_cruzada(publico, "A) VALIDACIÓN CRUZADA: SpaPhish")
 
-    # Experimento B: entrenar con el público y probar con tus mensajes.
+    # Experimento B: entrenar con SpaPhish y evaluar con el conjunto de SMS.
     # Mide si el modelo generaliza a un tipo de texto distinto.
     modelo = crear_modelo()
     modelo.fit([t for t, _ in publico], [e for _, e in publico])
@@ -149,7 +153,7 @@ if __name__ == "__main__":
     etiquetas_propias = [e for _, e in mensajes_propios]
     predicciones = modelo.predict(textos_propios)
 
-    print("\nB) ENTRENADO CON EL PÚBLICO, PROBADO CON TUS MENSAJES")
+    print("\nB) ENTRENADO CON SPAPHISH, EVALUADO CON EL CONJUNTO DE SMS")
     print("-" * 60)
     print(classification_report(
         etiquetas_propias, predicciones,
@@ -162,17 +166,17 @@ if __name__ == "__main__":
     # Experimento C: todo junto.
     validacion_cruzada(
         publico + list(mensajes_propios),
-        "C) VALIDACIÓN CRUZADA: dataset público + tus mensajes"
+        "C) VALIDACIÓN CRUZADA: SpaPhish + conjunto de SMS"
     )
 
-    # Experimento D: ¿ayuda SpaPhish con tus mensajes cortos?
-    print("\nD) RESULTADO SOBRE TUS MENSAJES (validación cruzada)")
+    # Experimento D: efecto de añadir SpaPhish al entrenamiento del modelo de SMS.
+    print("\nD) RESULTADO SOBRE EL CONJUNTO DE SMS (validación cruzada)")
     print("-" * 60)
     print(f"{'Entrenamiento':<28}{'Exact.':>8}{'Prec.':>8}{'Recall':>8}"
           f"{'F1':>8}{'FN':>5}{'FP':>5}")
 
-    for nombre, usar in [("Solo tus mensajes", False),
-                         ("Tus mensajes + SpaPhish", True)]:
+    for nombre, usar in [("Solo SMS", False),
+                         ("SMS + SpaPhish", True)]:
         r = evaluar_sobre_propios(publico, usar)
         print(f"{nombre:<28}{r['accuracy']:>8.1%}{r['precision']:>8.1%}"
               f"{r['recall']:>8.1%}{r['f1']:>8.1%}{r['fn']:>5}{r['fp']:>5}")

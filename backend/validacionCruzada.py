@@ -4,11 +4,9 @@ from sklearn.model_selection import (
     cross_val_predict
 )
 from sklearn.metrics import confusion_matrix
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression
-from sklearn.pipeline import Pipeline
-
+from datasetPublico import crear_modelo
 from datosEntrenamiento import mensajes
+from entrenar import CONFIGURACION
 
 
 # Separar los textos y sus etiquetas.
@@ -16,25 +14,8 @@ textos = [texto for texto, etiqueta in mensajes]
 etiquetas = [etiqueta for texto, etiqueta in mensajes]
 
 
-# Mismo modelo que se usa en la aplicación.
-modelo = Pipeline([
-    (
-        "tfidf",
-        TfidfVectorizer(
-            lowercase=True,
-            strip_accents="unicode",
-            ngram_range=(1, 2)
-        )
-    ),
-    (
-        "clasificador",
-        LogisticRegression(
-            C=10,
-            max_iter=1000,
-            random_state=42
-        )
-    )
-])
+# Mismo modelo que se usa en la aplicación para los SMS.
+modelo = crear_modelo(**CONFIGURACION["sms"])
 
 
 # 5 bloques (folds), manteniendo la proporción de cada clase en todos.

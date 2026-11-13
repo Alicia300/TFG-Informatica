@@ -15,8 +15,7 @@ PATRON_URL = re.compile(r"(?:https?://|www\.)[^\s<>\"']+", re.IGNORECASE)
 
 ORDEN_NIVELES = {"bajo": 0, "medio": 1, "alto": 2}
 
-# Palabras muy frecuentes que no aportan información al usuario. Solo se
-# ocultan en la explicación; el modelo sí las usa al clasificar.
+# Palabras muy frecuentes que no aportan información al usuario. Solo se ocultan en la explicación; el modelo sí las usa al clasificar.
 PALABRAS_VACIAS = {
     "a", "al", "ante", "con", "de", "del", "el", "en", "es", "ha", "han",
     "la", "las", "lo", "los", "me", "mi", "o", "para", "por", "que", "se",

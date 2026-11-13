@@ -57,7 +57,7 @@ def comparar_algoritmos(nombre_dataset, datos):
     print(f"COMPARACIÓN DE ALGORITMOS - {nombre_dataset} ({len(datos)} mensajes)")
     print("=" * 72)
     print(f"{'Algoritmo':<28}{'Exact.':>8}{'Prec.':>8}{'Recall':>8}"
-          f"{'F1':>8}{'Seg.':>8}")
+          f"{'F1':>8}{'± F1':>8}{'Seg.':>8}")
     print("-" * 72)
 
     filas = []
@@ -76,11 +76,14 @@ def comparar_algoritmos(nombre_dataset, datos):
         segundos = time.time() - inicio
 
         medias = {m: res[f"test_{m}"].mean() for m in METRICAS}
+        desviacion_f1 = res["test_f1"].std()
 
         print(f"{nombre:<28}{medias['accuracy']:>8.1%}{medias['precision']:>8.1%}"
-              f"{medias['recall']:>8.1%}{medias['f1']:>8.1%}{segundos:>8.1f}")
+              f"{medias['recall']:>8.1%}{medias['f1']:>8.1%}"
+              f"{desviacion_f1:>8.1%}{segundos:>8.1f}")
 
-        filas.append([nombre_dataset, nombre] + [round(medias[m], 4) for m in METRICAS])
+        filas.append([nombre_dataset, nombre] + [round(medias[m], 4) for m in METRICAS]
+                     + [round(desviacion_f1, 4)])
 
     return filas
 
@@ -141,7 +144,7 @@ if __name__ == "__main__":
 
     with open(ruta_csv, "w", encoding="utf-8-sig", newline="") as archivo:
         escritor = csv.writer(archivo, delimiter=";")
-        escritor.writerow(["Conjunto", "Algoritmo"] + METRICAS)
+        escritor.writerow(["Conjunto", "Algoritmo"] + METRICAS + ["f1_desviacion"])
         escritor.writerows(todas_las_filas)
 
     print(f"\nTabla guardada en: {ruta_csv}")
