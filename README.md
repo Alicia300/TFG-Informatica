@@ -28,6 +28,7 @@ Los modelos entrenados están en `backend/modelos/`. Para reentrenarlos, desde l
 ```
 python entrenar.py
 ```
+Los modelos de backend/modelos/ se entrenaron con scikit-learn 1.9.1. Si se ha emplead otra versión y da error al cargarlos, reentrenar con python entrenar.py.
 Resultados de la validación cruzada (5 folds):
 
 | Modelo | Datos | Exactitud | Recall |
