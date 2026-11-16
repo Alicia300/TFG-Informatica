@@ -43,8 +43,8 @@ def entrenar_y_guardar(nombre, datos):
 
     print(f"\nModelo {nombre.upper()} ({len(datos)} mensajes)")
     for metrica in ["accuracy", "precision", "recall", "f1"]:
-        print(f"  {metrica:<10} {res[f'test_{metrica}'].mean():.2%}")
-
+                print(f"  {metrica:<10} {res[f'test_{metrica}'].mean():.2%} "
+                      f"(± {res[f'test_{metrica}'].std():.2%})")
     # Entrenamiento final con todos los datos y guardado.
     modelo = crear_modelo(**CONFIGURACION[nombre])
     modelo.fit(textos, etiquetas)
